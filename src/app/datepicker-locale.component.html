@@ -1,0 +1,51 @@
+<div
+  [formGroup]="parts"
+  class="wrapper"
+  [attr.aria-labelledby]="_formField.getLabelId()"
+  (focusin)="onFocusIn($event)"
+  (focusout)="onFocusOut($event)"
+>
+  <input
+    matInput
+    #maskDate
+    [imask]="dateMaskConfig"
+    [unmask]="true"
+    (focus)="onMaskDateFocus()"
+    (blur)="onMaskDateBlur()"
+    (accept)="onMaskAccept()"
+    (complete)="onMaskDateComplete()"
+    formControlName="maskDate"
+  />
+  <input
+    matInput
+    #datePicker
+    hidden
+    [matDatepicker]="picker"
+    (dateChange)="setMaskDateFromDatepicker($event)"
+  />
+  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-datepicker #picker></mat-datepicker>
+  <mat-divider class="divider" vertical="true"></mat-divider>
+  <ng-container *ngIf="withTime">
+    <input
+      matInput
+      #maskTime
+      [imask]="timeMaskConfig"
+      [unmask]="true"
+      (focus)="onMaskTimeFocus()"
+      (blur)="onMaskTimeBlur()"
+      (accept)="onMaskInput()"
+      (complete)="onMaskInput()"
+      formControlName="maskTime"
+    />
+  </ng-container>
+</div>
+<div>
+  <button mat-button (click)="toggleLocale()">Toggle Locale</button>
+  <!-- <br />
+  <button mat-button (click)="setDateToConstant()">
+    Set Datetime to 01-Feb-2022 12:35
+  </button> -->
+  <br />
+  <button mat-button (click)="showDateTime()">Show DateTime</button>
+</div>
