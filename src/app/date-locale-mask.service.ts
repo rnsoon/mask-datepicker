@@ -11,6 +11,12 @@ export class DateLocaleMaskService {
     ["year", "y"],
   ]);
 
+  private readonly dateHintMap = new Map<string, string>([
+    ["month", "mm"],
+    ["day", "dd"],
+    ["year", "yyyy"],
+  ]);
+
   locale: string = "en-US";
   datePartsSeparator: string = "/";
 
@@ -18,11 +24,18 @@ export class DateLocaleMaskService {
     this.locale = currentDateLocale;
   }
 
-  createDateMask(): IMask.MaskedDate {
+  createDateMask(
+    datePartsSeparator: string,
+    minDate?: DateTime,
+    maxDate?: DateTime
+  ): IMask.MaskedDate {
+    this.datePartsSeparator = datePartsSeparator;
     const localeFormat = this.getDateFormat();
     return IMask.createMask({
       mask: Date,
       pattern: this.getDateMaskPattern(localeFormat),
+      min: minDate?.toJSDate(),
+      max: maxDate?.toJSDate(),
       lazy: true,
       overwrite: true,
       blocks: {
@@ -104,11 +117,11 @@ export class DateLocaleMaskService {
   }
 
   getDateNoMaskLength(): number {
-    return 8;
+    return 10;
   }
 
   getTimeNoMaskLength(): number {
-    return 4;
+    return 5;
   }
 
   fromJSDate(date: Date | null, time: Date | null): DateTime | null {
@@ -130,6 +143,19 @@ export class DateLocaleMaskService {
       });
 
     return workDate;
+  }
+
+  getDateHintFormat(): string {
+    const parts: Array<string> = new Array<string>();
+    const partTypes = DateTime.now()
+      .setLocale(this.locale)
+      .toLocaleParts()
+      .map((x) => x.type);
+    partTypes.forEach((x) => {
+      const part = this.dateHintMap.get(x);
+      if (!!part) parts.push(part);
+    });
+    return parts.join(this.datePartsSeparator);
   }
 
   private getDateMaskPattern(format: string): string {

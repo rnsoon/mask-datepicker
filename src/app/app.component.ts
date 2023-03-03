@@ -39,21 +39,19 @@ export class FormFieldCustomControlExample {
     this.form = this.fb.group({
       expirationDate: [""],
     });
-    this.form.setValue({
-      expirationDate: DateTime.fromJSDate(new Date(2022, 11, 12, 12, 35)),
-    });
   }
-  ngAfterViewInit() {
-    setTimeout(() => {
-      this.form.setValue({
-        expirationDate: DateTime.fromJSDate(new Date(2022, 11, 12, 12, 35)),
-      });
-    });
-  }
+
   setInput() {
     this.form.setValue({
       expirationDate: DateTime.fromJSDate(new Date(2022, 11, 12, 12, 35)),
     });
+    //this.form.markAsDirty();
+    //this.form.markAsPristine();
+  }
+
+  reset() {
+    // this.form.reset();
+    this.form.markAsPristine();
   }
 
   showDateTime() {

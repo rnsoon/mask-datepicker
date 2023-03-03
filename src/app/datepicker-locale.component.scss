@@ -1,0 +1,37 @@
+.wrapper {
+  display: flex;
+}
+
+.mat-divider {
+  margin: 0 4px;
+}
+
+.wrapper .divider {
+  margin-right: 14px;
+}
+
+.mask-item .date {
+  flex-basis: 70%;
+}
+
+.mask-item .time {
+  flex-basis: 30%;
+}
+
+.mask-item {
+  border: none;
+  background: none;
+  padding: 0;
+  outline: none;
+  font: inherit;
+  text-align: left;
+}
+
+span {
+  opacity: 0;
+  transition: opacity 200ms;
+}
+
+:host.floating span {
+  opacity: 1;
+}
