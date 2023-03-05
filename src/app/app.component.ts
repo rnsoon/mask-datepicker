@@ -43,22 +43,26 @@ export class FormFieldCustomControlExample {
 
   setInput() {
     this.form.setValue({
-      expirationDate: DateTime.fromJSDate(new Date(2022, 11, 12, 12, 35)),
+      expirationDate: DateTime.fromJSDate(new Date(2022, 10, 12, 12, 35)),
     });
-    //this.form.markAsDirty();
-    //this.form.markAsPristine();
+  }
+
+  getMaxDate(): DateTime {
+    return DateTime.local();
+  }
+
+  getMinDate(): DateTime {
+    return DateTime.fromISO("2023-02-12T00:00:00.000");
   }
 
   reset() {
-    // this.form.reset();
     this.form.markAsPristine();
   }
 
   showDateTime() {
-    const {
-      value: { expirationDate },
-    } = this.form;
-    console.log(`show datetime ${expirationDate}`);
+    console.log(
+      `show expiration date ${this.form.get("expirationDate")?.value}`
+    );
     console.log(`show dirty ${this.form.dirty}`);
   }
 }

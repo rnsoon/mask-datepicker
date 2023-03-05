@@ -1,15 +1,14 @@
 <div [formGroup]="form">
   <mat-form-field appearance="fill">
-    <!-- <mat-label>Expiration Date</mat-label> -->
-    <gb-datepicker
+    <mat-label>Expiration Date</mat-label>
+    <gb-datepicker-locale
       formControlName="expirationDate"
       [withTime]="true"
-      placeholder="Enter date"
-    ></gb-datepicker>
+    ></gb-datepicker-locale>
   </mat-form-field>
   <br />
   <button mat-button (click)="setInput()">
-    Set Datetime to 12-Dec-2022 12:35
+    Set Datetime to 12-Nov-2022 12:35
   </button>
   <br />
   <button mat-button (click)="showDateTime()">Show DateTime</button>

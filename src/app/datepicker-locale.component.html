@@ -14,13 +14,15 @@
     [unmask]="false"
     (accept)="onMaskAccept()"
     (complete)="onMaskDateComplete()"
-    [placeholder]="placeholder"
+    [placeholder]="dateHint()"
     formControlName="maskDate"
   />
   <input
     matInput
     #datePicker
     hidden
+    [min]="minDate"
+    [max]="maxDate"
     [matDatepicker]="picker"
     (dateChange)="setMaskDateFromDatepicker($event)"
   />
@@ -37,6 +39,7 @@
       [unmask]="false"
       (accept)="onMaskInput()"
       (complete)="onMaskInput()"
+      [placeholder]="timeHint()"
       formControlName="maskTime"
     />
   </ng-container>

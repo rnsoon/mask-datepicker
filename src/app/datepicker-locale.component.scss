@@ -10,12 +10,12 @@
   margin-right: 14px;
 }
 
-.mask-item .date {
-  flex-basis: 70%;
+.mask-item.date {
+  flex: 1 1 60%;
 }
 
-.mask-item .time {
-  flex-basis: 30%;
+.mask-item.time {
+  flex: 1 1 35%;
 }
 
 .mask-item {
@@ -25,11 +25,6 @@
   outline: none;
   font: inherit;
   text-align: left;
-}
-
-span {
-  opacity: 0;
-  transition: opacity 200ms;
 }
 
 :host.floating span {

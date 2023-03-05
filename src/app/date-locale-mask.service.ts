@@ -5,6 +5,14 @@ import { DateTime } from "luxon";
 
 @Injectable()
 export class DateLocaleMaskService {
+  private static readonly MDY_PATTERN = new RegExp(
+    `^\\\d{2}\\\D\\\d{2}\\\D\\\d{4}$`
+  );
+  private static readonly YMD_PATTERN = new RegExp(
+    `^\\\d{4}\\\D\\\d{2}\\\D\\\d{2}$`
+  );
+  private static readonly TIME_PATTERN = new RegExp(`^\\\d{2}\\\D\\\d{2}$`);
+
   private readonly datePartsMap = new Map<string, string>([
     ["month", "MM"],
     ["day", "dd"],
@@ -12,30 +20,30 @@ export class DateLocaleMaskService {
   ]);
 
   private readonly dateHintMap = new Map<string, string>([
-    ["month", "mm"],
-    ["day", "dd"],
-    ["year", "yyyy"],
+    ["month", "MM"],
+    ["day", "DD"],
+    ["year", "YYYY"],
+  ]);
+
+  private readonly datePatternsMap = new Map<string, RegExp>([
+    ["MMddy", DateLocaleMaskService.MDY_PATTERN],
+    ["ddMMy", DateLocaleMaskService.MDY_PATTERN],
+    ["yMMdd", DateLocaleMaskService.YMD_PATTERN],
   ]);
 
   locale: string = "en-US";
-  datePartsSeparator: string = "/";
+  datePartsSeparator: string = ".";
 
   constructor(@Inject(MAT_DATE_LOCALE) currentDateLocale: string) {
     this.locale = currentDateLocale;
   }
 
-  createDateMask(
-    datePartsSeparator: string,
-    minDate?: DateTime,
-    maxDate?: DateTime
-  ): IMask.MaskedDate {
+  createDateMask(datePartsSeparator: string): IMask.MaskedDate {
     this.datePartsSeparator = datePartsSeparator;
     const localeFormat = this.getDateFormat();
     return IMask.createMask({
       mask: Date,
       pattern: this.getDateMaskPattern(localeFormat),
-      min: minDate?.toJSDate(),
-      max: maxDate?.toJSDate(),
       lazy: true,
       overwrite: true,
       blocks: {
@@ -88,7 +96,28 @@ export class DateLocaleMaskService {
     });
   }
 
-  getDateMaskUpdateOptions(): Partial<IMask.MaskedDateOptions> {
+  fromJSDate(date: Date | null, time: Date | null): DateTime | null {
+    if (!date) return null;
+
+    let workDate: DateTime = DateTime.fromObject({
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date?.getDate(),
+    });
+
+    if (!!time)
+      workDate = DateTime.fromObject({
+        year: workDate.year,
+        month: workDate.month,
+        day: workDate.day,
+        hour: time.getHours(),
+        minute: time.getMinutes(),
+      });
+
+    return workDate;
+  }
+
+  getDateMaskUpdateFormatOptions(): Partial<IMask.MaskedDateOptions> {
     const localeDateFormat = this.getDateFormat();
     return {
       pattern: this.getDateMaskPattern(localeDateFormat),
@@ -96,6 +125,16 @@ export class DateLocaleMaskService {
         DateTime.fromJSDate(date).toFormat(localeDateFormat),
       parse: (str: string) =>
         DateTime.fromFormat(str, localeDateFormat).toJSDate(),
+    };
+  }
+
+  getDateMaskUpdateMinMaxOptions(
+    minDate?: DateTime,
+    maxDate?: DateTime
+  ): Partial<IMask.MaskedDateOptions> {
+    return {
+      min: minDate?.toJSDate(),
+      max: maxDate?.toJSDate(),
     };
   }
 
@@ -116,36 +155,17 @@ export class DateLocaleMaskService {
     return "HH:mm";
   }
 
-  getDateNoMaskLength(): number {
-    return 10;
+  getDatePattern(): RegExp {
+    return this.datePatternsMap.get(
+      this.getDateFormat().replaceAll(this.datePartsSeparator, "")
+    )!;
   }
 
-  getTimeNoMaskLength(): number {
-    return 5;
+  getTimePattern(): RegExp {
+    return DateLocaleMaskService.TIME_PATTERN;
   }
 
-  fromJSDate(date: Date | null, time: Date | null): DateTime | null {
-    if (!date) return null;
-
-    let workDate: DateTime = DateTime.fromObject({
-      year: date.getFullYear(),
-      month: date.getMonth(),
-      day: date?.getDate(),
-    });
-
-    if (!!time)
-      workDate = DateTime.fromObject({
-        year: workDate.year,
-        month: workDate.month,
-        day: workDate.day,
-        hour: time.getHours(),
-        minute: time.getMinutes(),
-      });
-
-    return workDate;
-  }
-
-  getDateHintFormat(): string {
+  getDateHint(): string {
     const parts: Array<string> = new Array<string>();
     const partTypes = DateTime.now()
       .setLocale(this.locale)
@@ -156,6 +176,10 @@ export class DateLocaleMaskService {
       if (!!part) parts.push(part);
     });
     return parts.join(this.datePartsSeparator);
+  }
+
+  getTimeHint(): string {
+    return this.getTimeFormat();
   }
 
   private getDateMaskPattern(format: string): string {

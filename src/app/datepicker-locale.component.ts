@@ -48,7 +48,7 @@ export function validateDateTimeFactory(): ValidatorFn {
 }
 
 @Component({
-  selector: "gb-datepicker",
+  selector: "gb-datepicker-locale",
   templateUrl: "datepicker-locale.component.html",
   styleUrls: ["datepicker-locale.component.scss"],
   providers: [
@@ -89,10 +89,10 @@ export class DatepickerLocaleComponent
   stateChanges = new Subject<void>();
   focused: boolean = false;
   touched: boolean = false;
-  controlType = "gb-datepicker";
+  controlType = "gb-datepicker-locale";
 
   @HostBinding()
-  id = `gb-datepicker-${DatepickerLocaleComponent.nextId++}`;
+  id = `gb-datepicker-locale-${DatepickerLocaleComponent.nextId++}`;
 
   onChange = (_: any) => {};
   onTouched = () => {};
@@ -114,9 +114,9 @@ export class DatepickerLocaleComponent
   }
 
   @Input() withTime: boolean = false;
-  @Input() dateSeparator: string = "/";
-  @Input() maxDate?: DateTime;
-  @Input() minDate?: DateTime;
+  @Input() dateSeparator: string = ".";
+  @Input() maxDate: DateTime | null = null;
+  @Input() minDate: DateTime | null = null;
 
   @Input("aria-describedby") userAriaDescribedBy: string;
 
@@ -154,7 +154,7 @@ export class DatepickerLocaleComponent
   @Input()
   get value(): DateTime | string | null {
     if (this.parts.valid) {
-      if (!this.dateMaskConfig.typedValue) return ""; // when empty is valid
+      if (this.dateMaskConfig.unmaskedValue === "") return ""; // when empty is valid
       return this.dateLocaleMaskService.fromJSDate(
         this.dateMaskConfig.typedValue,
         this.timeMaskConfig.typedValue
@@ -185,15 +185,22 @@ export class DatepickerLocaleComponent
   ) {
     if (this.ngControl !== null) this.ngControl.valueAccessor = this;
     this.dateMaskConfig = this.dateLocaleMaskService.createDateMask(
-      this.dateSeparator,
-      this.minDate,
-      this.maxDate
+      this.dateSeparator
     );
     this.timeMaskConfig = this.dateLocaleMaskService.createTimeMask();
   }
 
   ngOnInit() {
     this.setFormValidators();
+  }
+
+  ngAfterViewInit() {
+    this.dateMaskConfig.updateOptions(
+      this.dateLocaleMaskService.getDateMaskUpdateMinMaxOptions(
+        this.minDate ?? undefined,
+        this.maxDate ?? undefined
+      )
+    );
   }
 
   ngOnDestroy() {
@@ -294,7 +301,11 @@ export class DatepickerLocaleComponent
   }
 
   dateHint() {
-    return this.dateLocaleMaskService.getDateHintFormat();
+    return this.dateLocaleMaskService.getDateHint();
+  }
+
+  timeHint() {
+    return this.dateLocaleMaskService.getTimeHint();
   }
 
   autoFocusPrev(control: AbstractControl, prevElement: HTMLInputElement): void {
@@ -322,22 +333,17 @@ export class DatepickerLocaleComponent
   }
 
   private setFormValidators() {
-    const dateLength = this.dateLocaleMaskService.getDateNoMaskLength();
-    const timeLength = this.dateLocaleMaskService.getTimeNoMaskLength();
-
     this.parts
       .get("maskDate")
       ?.setValidators([
-        Validators.minLength(dateLength),
-        Validators.maxLength(dateLength),
+        Validators.pattern(this.dateLocaleMaskService.getDatePattern()),
       ]);
 
     if (this.withTime)
       this.parts
         .get("maskTime")
         ?.setValidators([
-          Validators.minLength(timeLength),
-          Validators.maxLength(timeLength),
+          Validators.pattern(this.dateLocaleMaskService.getTimePattern()),
         ]);
   }
 
@@ -348,7 +354,7 @@ export class DatepickerLocaleComponent
       formats[(formats.indexOf(this.dateLocaleMaskService.locale) + 1) % 3];
     this.adapter.setLocale(this.dateLocaleMaskService.locale);
     this.dateMaskConfig.updateOptions(
-      this.dateLocaleMaskService.getDateMaskUpdateOptions()
+      this.dateLocaleMaskService.getDateMaskUpdateFormatOptions()
     );
     this.dateMaskConfig.typedValue = currentDate;
     this.dateMaskDirective.maskRef!.updateControl();
